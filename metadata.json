@@ -1,0 +1,6 @@
+{
+  "name": "KenaKata — Bangladesh Multi-Vendor Marketplace",
+  "description": "A clean, modern multi-vendor e-commerce marketplace UI prototype for Bangladesh featuring curated product categories, Daily Bazar fresh groceries, nearby verified local shops, seller registration, customer auth, and an interactive shopping cart.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
