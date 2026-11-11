@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Package } from 'lucide-react';
 
 interface ResilientImageProps {
@@ -16,7 +16,11 @@ export function ResilientImage({
 }: ResilientImageProps) {
   const [hasError, setHasError] = useState(false);
 
-  if (hasError) {
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  if (hasError || !src) {
     return (
       <div
         className={`flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-500 p-4 text-center ${className}`}

@@ -1,24 +1,32 @@
+import { useLanguage } from '../i18n/LanguageContext';
 import type { CategoryId } from '../types/marketplace';
+import { formatNumber } from '../utils/formatters';
 
 interface FooterProps {
   onSelectCategory: (categoryId: CategoryId) => void;
+  onNavigateSection: (targetId: string) => void;
   onOpenSellerModal: () => void;
+  onOpenPostAd: () => void;
   onOpenAuth: (mode: 'login' | 'signup') => void;
+  onOpenAdminOrders: () => void;
 }
 
 export function Footer({
   onSelectCategory,
+  onNavigateSection,
   onOpenSellerModal,
+  onOpenPostAd,
   onOpenAuth,
+  onOpenAdminOrders,
 }: FooterProps) {
+  const { lang, t, brandName } = useLanguage();
+  const f = t.footer;
+
   const scrollToSection = (id: string, category?: CategoryId) => {
     if (category) {
       onSelectCategory(category);
     }
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+    onNavigateSection(id);
   };
 
   return (
@@ -27,21 +35,17 @@ export function Footer({
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-10 border-b border-slate-200">
           <div className="md:col-span-4">
             <span className="font-display text-xl font-extrabold tracking-tight text-slate-900">
-              KenaKata
+              {brandName}
             </span>
             <p className="mt-3 text-sm text-slate-600 leading-relaxed max-w-sm">
-              A clean multi-vendor marketplace connecting Bangladeshi shoppers with
-              trusted electronics dealers, artisan looms, Daily Bazar grocers, and
-              neighborhood stores.
+              {f.description}
             </p>
-            <p className="mt-4 text-xs text-slate-500">
-              Head Office: Kemal Ataturk Avenue, Banani, Dhaka 1213
-            </p>
+            <p className="mt-4 text-xs text-slate-500">{f.hq}</p>
           </div>
 
           <div className="md:col-span-3 space-y-2.5">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-900">
-              Marketplace
+              {f.colMarketplace}
             </h3>
             <ul className="space-y-2 text-sm text-slate-600">
               <li>
@@ -50,7 +54,7 @@ export function Footer({
                   onClick={() => scrollToSection('catalog', 'electronics')}
                   className="hover:text-slate-900 transition-colors cursor-pointer"
                 >
-                  Electronics & Gadgets
+                  {f.linkElectronics}
                 </button>
               </li>
               <li>
@@ -59,7 +63,16 @@ export function Footer({
                   onClick={() => scrollToSection('catalog', 'fashion')}
                   className="hover:text-slate-900 transition-colors cursor-pointer"
                 >
-                  Fashion & Jamdani Loom
+                  {f.linkFashion}
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => scrollToSection('used-products')}
+                  className="hover:text-slate-900 transition-colors cursor-pointer"
+                >
+                  {f.linkUsed}
                 </button>
               </li>
               <li>
@@ -68,7 +81,7 @@ export function Footer({
                   onClick={() => scrollToSection('daily-bazar')}
                   className="hover:text-slate-900 transition-colors cursor-pointer"
                 >
-                  Daily Bazar Grocery
+                  {f.linkBazar}
                 </button>
               </li>
               <li>
@@ -77,7 +90,7 @@ export function Footer({
                   onClick={() => scrollToSection('nearby-shops')}
                   className="hover:text-slate-900 transition-colors cursor-pointer"
                 >
-                  Verified Nearby Shops
+                  {f.linkShops}
                 </button>
               </li>
             </ul>
@@ -85,7 +98,7 @@ export function Footer({
 
           <div className="md:col-span-2 space-y-2.5">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-900">
-              Accounts & Sellers
+              {f.colAccounts}
             </h3>
             <ul className="space-y-2 text-sm text-slate-600">
               <li>
@@ -94,7 +107,16 @@ export function Footer({
                   onClick={onOpenSellerModal}
                   className="hover:text-slate-900 transition-colors cursor-pointer"
                 >
-                  Seller Registration
+                  {f.linkSellerReg}
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={onOpenPostAd}
+                  className="hover:text-slate-900 transition-colors cursor-pointer"
+                >
+                  {f.linkPostAd}
                 </button>
               </li>
               <li>
@@ -103,7 +125,7 @@ export function Footer({
                   onClick={() => onOpenAuth('login')}
                   className="hover:text-slate-900 transition-colors cursor-pointer"
                 >
-                  Customer Log In
+                  {f.linkLogin}
                 </button>
               </li>
               <li>
@@ -112,7 +134,16 @@ export function Footer({
                   onClick={() => onOpenAuth('signup')}
                   className="hover:text-slate-900 transition-colors cursor-pointer"
                 >
-                  Create Customer Account
+                  {f.linkSignup}
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={onOpenAdminOrders}
+                  className="hover:text-slate-900 transition-colors cursor-pointer"
+                >
+                  {f.linkAdmin}
                 </button>
               </li>
             </ul>
@@ -120,21 +151,21 @@ export function Footer({
 
           <div className="md:col-span-3 space-y-2.5">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-900">
-              Delivery & Checkout Terms
+              {f.colDelivery}
             </h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Cash on Delivery (COD) supported nationwide. Free Dhaka standard
-              delivery on orders above ৳ 1,500.
+              {f.deliveryCopy}
             </p>
-            <p className="text-xs text-slate-500 pt-1">
-              Planned gateways: bKash · Nagad · Visa · Mastercard · COD
-            </p>
+            <p className="text-xs text-slate-500 pt-1">{f.deliverySub}</p>
           </div>
         </div>
 
         <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} KenaKata Bangladesh. UI Prototype.</p>
-          <p>Dhaka · Chattogram · Sylhet · Rajshahi · Khulna · 64 Districts</p>
+          <p>
+            © {formatNumber(new Date().getFullYear(), lang).replace(/,/g, '')}{' '}
+            {f.copyright}
+          </p>
+          <p>{f.areasFoot}</p>
         </div>
       </div>
     </footer>

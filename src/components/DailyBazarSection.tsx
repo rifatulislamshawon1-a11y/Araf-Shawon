@@ -2,17 +2,23 @@ import { useState } from 'react';
 import { Clock, MapPin, Minus, Plus } from 'lucide-react';
 import {
   AREAS,
-  AREA_DELIVERY_SLOTS,
   DAILY_BAZAR_ITEMS,
   GROCERY_AISLES,
 } from '../data/marketplaceData';
+import { useLanguage } from '../i18n/LanguageContext';
+import {
+  AISLE_LABELS_BN,
+  AREA_LABELS,
+  GROCERY_BN,
+  SLOT_LABELS,
+} from '../i18n/translations';
 import type {
   AreaName,
   CartItem,
   GroceryAisleId,
   GroceryItem,
 } from '../types/marketplace';
-import { formatBDT } from '../utils/formatters';
+import { formatBDT, formatNumber } from '../utils/formatters';
 import { ResilientImage } from './ResilientImage';
 
 interface DailyBazarSectionProps {
@@ -33,16 +39,20 @@ export function DailyBazarSection({
   searchQuery,
 }: DailyBazarSectionProps) {
   const [selectedAisle, setSelectedAisle] = useState<GroceryAisleId>('all');
+  const { lang, t } = useLanguage();
+  const d = t.dailyBazar;
 
   const query = searchQuery.trim().toLowerCase();
 
   const visibleItems = DAILY_BAZAR_ITEMS.filter((item) => {
     const matchesAisle = selectedAisle === 'all' || item.aisle === selectedAisle;
+    const gBn = GROCERY_BN[item.id];
     const matchesQuery =
       !query ||
       item.name.toLowerCase().includes(query) ||
       item.aisleLabel.toLowerCase().includes(query) ||
-      item.origin.toLowerCase().includes(query);
+      item.origin.toLowerCase().includes(query) ||
+      (gBn?.name.toLowerCase().includes(query) ?? false);
     return matchesAisle && matchesQuery;
   });
 
@@ -60,14 +70,13 @@ export function DailyBazarSection({
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
-              Daily Bazar · Fresh Kitchen & Pantry
+              {d.eyebrow}
             </p>
             <h2 className="mt-1 font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 text-balance">
-              Morning-harvest groceries delivered today
+              {d.headline}
             </h2>
             <p className="mt-1.5 text-sm sm:text-base text-slate-600 max-w-2xl">
-              Direct Dinajpur rice, Savar vegetables, chilled river fish, and pure
-              ghani mustard oil from verified local markets.
+              {d.subtext}
             </p>
           </div>
 
@@ -82,7 +91,7 @@ export function DailyBazarSection({
               >
                 {AREAS.map((area) => (
                   <option key={area} value={area}>
-                    {area}
+                    {AREA_LABELS[area][lang]}
                   </option>
                 ))}
               </select>
@@ -92,7 +101,7 @@ export function DailyBazarSection({
             </span>
             <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-800 whitespace-nowrap">
               <Clock className="w-3.5 h-3.5 text-emerald-700 shrink-0" aria-hidden="true" />
-              <span>{AREA_DELIVERY_SLOTS[selectedArea]}</span>
+              <span>{SLOT_LABELS[selectedArea][lang]}</span>
             </div>
           </div>
         </div>
@@ -101,6 +110,8 @@ export function DailyBazarSection({
         <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6">
           {GROCERY_AISLES.map((aisle) => {
             const active = selectedAisle === aisle.id;
+            const label =
+              lang === 'bn' ? AISLE_LABELS_BN[aisle.id] : aisle.label;
             return (
               <button
                 key={aisle.id}
@@ -112,7 +123,7 @@ export function DailyBazarSection({
                     : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:text-slate-900'
                 }`}
               >
-                {aisle.label}
+                {label}
               </button>
             );
           })}
@@ -121,21 +132,31 @@ export function DailyBazarSection({
         {/* Grocery Product Grid */}
         {visibleItems.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-xl p-8 text-center">
-            <p className="text-sm text-slate-600">
-              No Daily Bazar items match your filter. Try selecting All Daily Bazar.
-            </p>
+            <p className="text-sm text-slate-600">{d.noMatch}</p>
             <button
               type="button"
               onClick={() => setSelectedAisle('all')}
               className="mt-3 px-4 py-2 text-xs font-semibold bg-emerald-700 text-white rounded-lg cursor-pointer"
             >
-              Show All Groceries
+              {d.showAll}
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {visibleItems.map((item) => {
               const qty = getCartQuantity(item.id);
+              const gBn = GROCERY_BN[item.id];
+              const displayName = lang === 'bn' && gBn ? gBn.name : item.name;
+              const displayAisle =
+                lang === 'bn' && gBn ? gBn.aisleLabel : item.aisleLabel;
+              const displayUnit = lang === 'bn' && gBn ? gBn.unit : item.unit;
+              const displayOrigin =
+                lang === 'bn' && gBn ? gBn.origin : item.origin;
+              const displayStock =
+                lang === 'bn' && gBn ? gBn.stockNote : item.stockNote;
+              const displayDesc =
+                lang === 'bn' && gBn ? gBn.description : item.description;
+
               return (
                 <article
                   key={item.id}
@@ -144,37 +165,37 @@ export function DailyBazarSection({
                   <div className="aspect-[4/3] w-full bg-zinc-100 overflow-hidden">
                     <ResilientImage
                       src={item.image}
-                      alt={item.name}
+                      alt={displayName}
                       className="w-full h-full object-cover"
-                      fallbackLabel={item.name}
+                      fallbackLabel={displayName}
                     />
                   </div>
 
                   <div className="p-4 flex flex-col flex-1">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">
-                      {item.aisleLabel} · {item.unit}
+                      {displayAisle} · {displayUnit}
                     </p>
 
                     <h3 className="mt-1.5 font-display text-base font-semibold text-slate-900 leading-snug">
-                      {item.name}
+                      {displayName}
                     </h3>
 
                     <p className="mt-1 text-xs text-slate-500">
-                      {item.origin} · {item.stockNote}
+                      {displayOrigin} · {displayStock}
                     </p>
 
                     <p className="mt-2.5 text-sm text-slate-600 line-clamp-2">
-                      {item.description}
+                      {displayDesc}
                     </p>
 
                     <div className="mt-auto pt-4 flex items-center justify-between gap-3 border-t border-slate-100">
                       <div className="tabular-nums">
                         <span className="text-base font-bold text-slate-900">
-                          {formatBDT(item.price)}
+                          {formatBDT(item.price, lang)}
                         </span>
                         {item.originalPrice && (
                           <span className="ml-2 text-xs text-slate-400 line-through">
-                            {formatBDT(item.originalPrice)}
+                            {formatBDT(item.originalPrice, lang)}
                           </span>
                         )}
                       </div>
@@ -184,18 +205,18 @@ export function DailyBazarSection({
                           <button
                             type="button"
                             onClick={() => onUpdateQuantity(item.id, -1)}
-                            aria-label={`Decrease quantity of ${item.name}`}
+                            aria-label={`Decrease quantity of ${displayName}`}
                             className="w-9 h-9 flex items-center justify-center text-emerald-800 hover:bg-emerald-100 transition-colors cursor-pointer"
                           >
                             <Minus className="w-3.5 h-3.5" />
                           </button>
                           <span className="w-8 text-center text-sm font-bold text-emerald-950 tabular-nums">
-                            {qty}
+                            {formatNumber(qty, lang)}
                           </span>
                           <button
                             type="button"
                             onClick={() => onUpdateQuantity(item.id, 1)}
-                            aria-label={`Increase quantity of ${item.name}`}
+                            aria-label={`Increase quantity of ${displayName}`}
                             className="w-9 h-9 flex items-center justify-center text-emerald-800 hover:bg-emerald-100 transition-colors cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" />
@@ -208,7 +229,7 @@ export function DailyBazarSection({
                           className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-                          <span>Add to Basket</span>
+                          <span>{d.addToBasket}</span>
                         </button>
                       )}
                     </div>

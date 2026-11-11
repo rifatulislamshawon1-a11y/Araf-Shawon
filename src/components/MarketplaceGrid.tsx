@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Check, Plus, RotateCcw, Star } from 'lucide-react';
 import { CATEGORIES } from '../data/marketplaceData';
+import { useLanguage } from '../i18n/LanguageContext';
+import { CATEGORY_TRANSLATIONS, PRODUCT_BN } from '../i18n/translations';
 import type { CategoryId, Product, SortOption } from '../types/marketplace';
-import { formatBDT } from '../utils/formatters';
+import { formatBDT, formatNumber } from '../utils/formatters';
 import { ResilientImage } from './ResilientImage';
 
 interface MarketplaceGridProps {
@@ -27,9 +29,15 @@ export function MarketplaceGrid({
   onOpenProduct,
 }: MarketplaceGridProps) {
   const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+  const { lang, t } = useLanguage();
+  const c = t.catalog;
 
   const activeCategoryName =
-    CATEGORIES.find((c) => c.id === selectedCategory)?.name ?? 'All Marketplace';
+    lang === 'bn'
+      ? CATEGORY_TRANSLATIONS[selectedCategory]?.name ??
+        CATEGORY_TRANSLATIONS.all.name
+      : CATEGORIES.find((cat) => cat.id === selectedCategory)?.name ??
+        'All Marketplace';
 
   const hasActiveFilter = selectedCategory !== 'all' || searchQuery.trim().length > 0;
 
@@ -48,15 +56,16 @@ export function MarketplaceGrid({
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
-              Curated Multi-Vendor Catalog
+              {c.eyebrow}
             </p>
             <h2 className="mt-1 font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 text-balance">
               {searchQuery.trim()
-                ? `Search results for "${searchQuery.trim()}"`
+                ? `${c.searchResultsFor} "${searchQuery.trim()}"`
                 : activeCategoryName}
             </h2>
             <p className="mt-1 text-sm text-slate-500 tabular-nums">
-              {products.length} {products.length === 1 ? 'product' : 'products'} available across verified sellers
+              {formatNumber(products.length, lang)}{' '}
+              {products.length === 1 ? c.availableSingular : c.availablePlural}
             </p>
           </div>
 
@@ -68,23 +77,23 @@ export function MarketplaceGrid({
                 className="inline-flex items-center gap-1.5 h-10 px-3.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Filters</span>
+                <span>{c.resetFilters}</span>
               </button>
             )}
 
             <label className="flex items-center gap-2 text-sm text-slate-600">
               <span className="whitespace-nowrap text-xs font-medium text-slate-500">
-                Sort by
+                {c.sortBy}
               </span>
               <select
                 value={sortBy}
                 onChange={(e) => onSortChange(e.target.value as SortOption)}
                 className="h-10 px-3 text-sm font-medium bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 cursor-pointer"
               >
-                <option value="featured">Featured</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="rating">Top Rated</option>
+                <option value="featured">{c.sortFeatured}</option>
+                <option value="price-asc">{c.sortPriceAsc}</option>
+                <option value="price-desc">{c.sortPriceDesc}</option>
+                <option value="rating">{c.sortRating}</option>
               </select>
             </label>
           </div>
@@ -94,23 +103,29 @@ export function MarketplaceGrid({
         {products.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-xl p-10 text-center max-w-lg mx-auto">
             <h3 className="font-display text-lg font-bold text-slate-900">
-              No matching products found
+              {c.noMatchTitle}
             </h3>
-            <p className="mt-2 text-sm text-slate-600">
-              Try a different keyword or reset your category filter to browse all items on KenaKata.
-            </p>
+            <p className="mt-2 text-sm text-slate-600">{c.noMatchBody}</p>
             <button
               type="button"
               onClick={onResetFilters}
               className="mt-5 inline-flex items-center justify-center h-10 px-5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer"
             >
-              Show All Marketplace Items
+              {c.showAllBtn}
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.map((product) => {
               const isJustAdded = recentlyAddedId === product.id;
+              const pBn = PRODUCT_BN[product.id];
+              const displayName = lang === 'bn' && pBn ? pBn.name : product.name;
+              const displayVendor =
+                lang === 'bn' && pBn ? pBn.vendorName : product.vendorName;
+              const displayCat =
+                lang === 'bn' && pBn ? pBn.categoryLabel : product.categoryLabel;
+              const displayDist =
+                lang === 'bn' && pBn ? pBn.vendorDistrict : product.vendorDistrict;
 
               return (
                 <article
@@ -122,13 +137,13 @@ export function MarketplaceGrid({
                     type="button"
                     onClick={() => onOpenProduct(product)}
                     className="relative aspect-[4/3] w-full bg-zinc-100 overflow-hidden text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-600"
-                    aria-label={`View details for ${product.name}`}
+                    aria-label={displayName}
                   >
                     <ResilientImage
                       src={product.image}
-                      alt={product.name}
+                      alt={displayName}
                       className="w-full h-full object-cover transition-transform duration-300 ease-market group-hover:scale-[1.03]"
-                      fallbackLabel={product.name}
+                      fallbackLabel={displayName}
                     />
                   </button>
 
@@ -136,7 +151,7 @@ export function MarketplaceGrid({
                   <div className="p-4 flex flex-col flex-1">
                     {/* Unboxed 1-line Vendor & Category Metadata */}
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">
-                      {product.vendorName} · {product.categoryLabel}
+                      {displayVendor} · {displayCat}
                     </p>
 
                     <button
@@ -144,7 +159,7 @@ export function MarketplaceGrid({
                       onClick={() => onOpenProduct(product)}
                       className="mt-1.5 text-left font-display text-[15px] font-semibold text-slate-900 leading-snug line-clamp-2 hover:text-emerald-700 transition-colors cursor-pointer"
                     >
-                      {product.name}
+                      {displayName}
                     </button>
 
                     <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500 tabular-nums">
@@ -153,23 +168,30 @@ export function MarketplaceGrid({
                         aria-hidden="true"
                       />
                       <span className="font-semibold text-slate-800">
-                        {product.rating.toFixed(1)}
+                        {lang === 'bn'
+                          ? product.rating.toLocaleString('bn-BD', {
+                              minimumFractionDigits: 1,
+                              maximumFractionDigits: 1,
+                            })
+                          : product.rating.toFixed(1)}
                       </span>
                       <span aria-hidden="true">·</span>
-                      <span>{product.soldCount} sold</span>
+                      <span>
+                        {formatNumber(product.soldCount, lang)} {c.sold}
+                      </span>
                       <span aria-hidden="true">·</span>
-                      <span className="truncate">{product.vendorDistrict}</span>
+                      <span className="truncate">{displayDist}</span>
                     </div>
 
                     {/* Price & Add to Cart Row */}
                     <div className="mt-auto pt-4 flex items-center justify-between gap-3 border-t border-slate-100">
                       <div className="tabular-nums">
                         <div className="text-base font-bold text-slate-900">
-                          {formatBDT(product.price)}
+                          {formatBDT(product.price, lang)}
                         </div>
                         {product.originalPrice && (
                           <div className="text-xs text-slate-400 line-through">
-                            {formatBDT(product.originalPrice)}
+                            {formatBDT(product.originalPrice, lang)}
                           </div>
                         )}
                       </div>
@@ -186,12 +208,12 @@ export function MarketplaceGrid({
                         {isJustAdded ? (
                           <>
                             <Check className="w-3.5 h-3.5" aria-hidden="true" />
-                            <span>Added</span>
+                            <span>{c.added}</span>
                           </>
                         ) : (
                           <>
                             <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-                            <span>Add to Cart</span>
+                            <span>{c.addToCart}</span>
                           </>
                         )}
                       </button>

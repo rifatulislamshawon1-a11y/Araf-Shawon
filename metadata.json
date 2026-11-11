@@ -1,6 +1,6 @@
 {
-  "name": "KenaKata — Bangladesh Multi-Vendor Marketplace",
-  "description": "A clean, modern multi-vendor e-commerce marketplace UI prototype for Bangladesh featuring curated product categories, Daily Bazar fresh groceries, nearby verified local shops, seller registration, customer auth, and an interactive shopping cart.",
+  "name": "ShoppingBolt — Cumilla Multi-Vendor & Second-Hand Marketplace, Bangladesh",
+  "description": "A bilingual (English & Bangla) multi-vendor and second-hand buy & sell marketplace prototype focused on Cumilla, Bangladesh featuring verified new stores, a full Used Products classifieds platform, Daily Bazar groceries, Cumilla nearby shops, and hybrid delivery.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

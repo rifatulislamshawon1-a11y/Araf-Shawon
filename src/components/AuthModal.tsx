@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { useLanguage } from '../i18n/LanguageContext';
 import type { AuthUser } from '../types/marketplace';
 
 interface AuthModalProps {
@@ -15,10 +16,13 @@ export function AuthModal({
   onClose,
   onSuccess,
 }: AuthModalProps) {
+  const { lang, t } = useLanguage();
+  const a = t.authModal;
+
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [fullName, setFullName] = useState('');
   const [phoneOrEmail, setPhoneOrEmail] = useState('');
-  const [district, setDistrict] = useState('Dhaka');
+  const [district, setDistrict] = useState('Cumilla Sadar');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
@@ -29,14 +33,24 @@ export function AuthModal({
 
   if (!isOpen) return null;
 
+  const areaOptions = [
+    { value: 'Cumilla Sadar', en: 'Cumilla Sadar', bn: 'কুমিল্লা সদর' },
+    { value: 'Kandirpar', en: 'Kandirpar, Cumilla', bn: 'কান্দিরপাড়, কুমিল্লা' },
+    { value: 'Kotbari & Cantonment', en: 'Kotbari & Cantonment', bn: 'কোটবাড়ি ও ক্যান্টনমেন্ট' },
+    { value: 'Tomsom Bridge', en: 'Tomsom Bridge, Cumilla', bn: 'টমছম ব্রিজ, কুমিল্লা' },
+    { value: 'Laksam', en: 'Laksam, Cumilla', bn: 'লাকসাম, কুমিল্লা' },
+    { value: 'Chouddagram', en: 'Chouddagram, Cumilla', bn: 'চৌদ্দগ্রাম, কুমিল্লা' },
+    { value: 'Other Districts', en: 'Other Bangladesh Districts', bn: 'বাংলাদেশের অন্যান্য জেলা' },
+  ];
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!phoneOrEmail.trim() || !password.trim()) {
-      setError('Please enter your mobile number or email and password.');
+      setError(a.errEmpty);
       return;
     }
     if (mode === 'signup' && !fullName.trim()) {
-      setError('Please enter your full name to create an account.');
+      setError(a.errName);
       return;
     }
 
@@ -45,7 +59,9 @@ export function AuthModal({
         ? fullName.trim()
         : phoneOrEmail.includes('@')
           ? phoneOrEmail.split('@')[0]
-          : 'Rafiqul Islam';
+          : lang === 'bn'
+            ? 'রফিকুল ইসলাম'
+            : 'Rafiqul Islam';
 
     onSuccess({
       name: displayName,
@@ -60,7 +76,7 @@ export function AuthModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-label={mode === 'login' ? 'Customer log in' : 'Customer sign up'}
+      aria-label={mode === 'login' ? a.loginTitle : a.signupTitle}
     >
       <div
         className="fixed inset-0 bg-slate-900/50 backdrop-blur-[1px]"
@@ -70,7 +86,7 @@ export function AuthModal({
       <div className="relative z-10 w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
           <h2 className="font-display text-lg font-bold text-slate-900">
-            {mode === 'login' ? 'Customer Log In' : 'Create Customer Account'}
+            {mode === 'login' ? a.loginTitle : a.signupTitle}
           </h2>
           <button
             type="button"
@@ -97,7 +113,7 @@ export function AuthModal({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Log in
+              {a.loginTab}
             </button>
             <button
               type="button"
@@ -111,7 +127,7 @@ export function AuthModal({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Sign up
+              {a.signupTab}
             </button>
           </div>
 
@@ -125,13 +141,13 @@ export function AuthModal({
             {mode === 'signup' && (
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Full Name
+                  {a.fullName}
                 </label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. Nusrat Jahan"
+                  placeholder={a.namePlaceholder}
                   className="w-full h-10 px-3 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
                 />
               </div>
@@ -139,13 +155,13 @@ export function AuthModal({
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Mobile Number (+880) or Email
+                {a.phoneOrEmail}
               </label>
               <input
                 type="text"
                 value={phoneOrEmail}
                 onChange={(e) => setPhoneOrEmail(e.target.value)}
-                placeholder="+880 1711-000000 or name@example.com"
+                placeholder={a.phonePlaceholder}
                 className="w-full h-10 px-3 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
               />
             </div>
@@ -153,31 +169,31 @@ export function AuthModal({
             {mode === 'signup' && (
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Delivery District
+                  {a.district}
                 </label>
                 <select
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
                   className="w-full h-10 px-3 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
                 >
-                  <option value="Dhaka">Dhaka</option>
-                  <option value="Chattogram">Chattogram</option>
-                  <option value="Sylhet">Sylhet</option>
-                  <option value="Rajshahi">Rajshahi</option>
-                  <option value="Khulna">Khulna</option>
+                  {areaOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt[lang]}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Password
+                {a.password}
               </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
+                placeholder={a.passwordPlaceholder}
                 className="w-full h-10 px-3 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
               />
             </div>
@@ -186,13 +202,11 @@ export function AuthModal({
               type="submit"
               className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer"
             >
-              {mode === 'login' ? 'Log in to KenaKata' : 'Create Account'}
+              {mode === 'login' ? a.loginSubmit : a.signupSubmit}
             </button>
           </form>
 
-          <p className="mt-4 text-xs text-center text-slate-500">
-            UI prototype authentication — sessions remain local to your browser.
-          </p>
+          <p className="mt-4 text-xs text-center text-slate-500">{a.demoNote}</p>
         </div>
       </div>
     </div>
